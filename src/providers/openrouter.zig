@@ -16,6 +16,7 @@ const OpenRouter = struct {
     choices: []struct {
         message: struct {
             content: []const u8,
+            reasoning: []const u8 = "not a reasoning model",
         },
     },
 };
@@ -67,7 +68,9 @@ pub fn openrouter(message: []const u8, _: Config) !void {
 
     const result = try std.json.parseFromSlice(OpenRouter, allocator, response.items, .{ .ignore_unknown_fields = true });
 
-    const text = result.value.choices[0].message.content;
+    const answer = result.value.choices[0].message;
+    const reasoning = answer.reasoning;
+    const text = answer.content;
 
     try writer.print(
         \\
@@ -75,5 +78,18 @@ pub fn openrouter(message: []const u8, _: Config) !void {
         \\
         \\{s}{s}{s}
         \\
-    , .{ style.Green, style.Underline, message, style.Reset, style.Yellow, text, style.Reset });
+        \\{s}{s}{s}
+        \\
+    , .{
+        style.Green,
+        style.Underline,
+        message,
+        style.Reset,
+        style.Blue,
+        reasoning,
+        style.Reset,
+        style.Yellow,
+        text,
+        style.Reset,
+    });
 }
